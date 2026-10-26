@@ -14,6 +14,7 @@ $debug = FALSE;
 $file_blacklist = array (
 '.dmm',
 'code/game/objects/items/weapons/cards_ids.dm',
+'code/game/objects/items/weapons/kitchen.dm',
 );
 $use_blacklist = TRUE;
 $xanlist = array(
@@ -73,15 +74,16 @@ $itemlist = array();
 $stringlist = array();
 $item_marray = array();
 
-$handle = fopen("file_list_combined_sorted", "r");
-if ($handle) {
-	while (($line = fgets($handle)) !== false) {
-		$line = chop($line);
+$files = array_filter(explode("\n", (string)shell_exec('rg -l -e origin_tech -e req_tech "' . __DIR__ . '/../Paradise"')));
+if (!$files) { print "ERROR: rg matched no files in ../Paradise\n"; }
+sort($files);
+	foreach ($files as $line) {
+		$line = str_replace('\\', '/', chop($line)); // normalize so the blacklist matches on Windows too
 		if ($use_blacklist) {
 			foreach ($file_blacklist as $b) {
 				if(strpos($line, $b) !== FALSE) {
 					//print "BLACKLIST: $line against $b \n";
-					continue;
+					continue 2;
 				} else {
 					//print "NOT MATCHED: '$line' V '$b' \n";
 				}
@@ -154,10 +156,6 @@ if ($handle) {
 			print "ERROR OPENING: ./$line \n";
 		}
 	}
-    fclose($handle);
-} else {
-    print "ERROR OPENING: ./file_list";
-} 
 
 if ($debug) { print_r($item_marray); }
 //print "ASDASDASD\n";

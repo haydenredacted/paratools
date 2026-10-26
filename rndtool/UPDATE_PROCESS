@@ -1,4 +1,3 @@
-./find-files
 php gen-itemdata.php > rndData.js
 update date in RDT.html
 download modified RDT.html and rndData.js to local github
