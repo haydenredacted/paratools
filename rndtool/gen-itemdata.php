@@ -17,6 +17,13 @@ $file_blacklist = array (
 'code/game/objects/items/weapons/kitchen.dm',
 );
 $use_blacklist = TRUE;
+$item_blacklist = array(
+// base types
+'mecha part',
+'mecha chassis',
+// unobtainable items
+'hardsuit jetpack upgrade'
+);
 $xanlist = array(
 // these will get us to at least level 5 in everything but toxins, illegals, and alien
 'welding tool',
@@ -211,10 +218,12 @@ function build_new_item($t, $a) {
 	global $debug;
 	global $item_marray;
 	global $xanlist;
+	global $item_blacklist;
 	//print "Trying to build: $t with";
 	//print_r($a);
 
 	if(isset($a['name'])) { $n = $a['name']; } else { $n = null; }
+	if(in_array($n, $item_blacklist)) { return; }
 	if(isset($a['otech'])) { $o = $a['otech']; } else { $o = '{}'; }
 	if(isset($a['rtech'])) { $r = $a['rtech']; } else { $r = $o; }
 	if(isset($a['build_types'])) { $s = $a['build_types']; } else { $s = ''; }
