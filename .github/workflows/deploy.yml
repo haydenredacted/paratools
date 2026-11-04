@@ -4,6 +4,11 @@ on:
     branches: [master]
     paths: ['rndtool/**']
   workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * *'
+
+permissions:
+  contents: write
 
 concurrency:
   group: deploy
@@ -13,7 +18,29 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+
+      - name: Generate rndData.js
+        if: github.event_name != 'push'
+        run: |
+          php rndtool/gen-itemdata.php > rndtool/rndData.js
+          sed -i -E "s/[0-9]{4}\/[A-Za-z]+[0-9]{1,2}(st|nd|rd|th)/$(date +%Y\/%B\/%-d)/" rndtool/RDT.html
+          git config user.name "GitHub Actions"
+          git config user.email "github-actions@github.com"
+          git add rndtool/rndData.js rndtool/RDT.html
+          if ! git diff --cached --quiet; then
+            git commit -m "Regenerate rndData.js"
+            git push
+          fi
+
       - name: Deploy over SSH
+        if: github.event_name == 'push'
         env:
           KEY: ${{ secrets.DEPLOY_SSH_KEY }}
           KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}

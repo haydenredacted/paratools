@@ -11,6 +11,12 @@ TODO:
 
 //$debug = TRUE;
 $debug = FALSE;
+
+// we're pulling the paradise repo here so we can get accurate data
+// and not have to worry about getting it manually
+$paradise_repo = 'https://github.com/ParadiseSS13/Paradise.git';
+$paradise_dir = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'paradise-rndtool-' . uniqid('', true);
+
 $file_blacklist = array (
 '.dmm',
 'code/game/objects/items/weapons/cards_ids.dm',
@@ -22,7 +28,8 @@ $item_blacklist = array(
 'mecha part',
 'mecha chassis',
 // unobtainable items
-'hardsuit jetpack upgrade'
+'hardsuit jetpack upgrade',
+'instakill rifle'
 );
 $xanlist = array(
 // these will get us to at least level 5 in everything but toxins, illegals, and alien
@@ -78,8 +85,16 @@ $itemlist = array();
 $stringlist = array();
 $item_marray = array();
 
-$files = array_filter(explode("\n", (string)shell_exec('rg -l -e origin_tech -e req_tech "' . __DIR__ . '/../Paradise"')));
-if (!$files) { print "ERROR: rg matched no files in ../Paradise\n"; }
+if (!is_dir($paradise_dir)) {
+	$clone = shell_exec('git clone --depth 1 ' . escapeshellarg($paradise_repo) . ' ' . escapeshellarg($paradise_dir) . ' 2>&1');
+	if ($clone === false || !is_dir($paradise_dir)) {
+		fwrite(STDERR, "ERROR: failed to clone $paradise_repo\n" . print_r($clone, true) . "\n");
+		exit(1);
+	}
+}
+$rg_path = str_replace('\\', '/', $paradise_dir);
+$files = array_filter(explode("\n", (string)shell_exec('rg -l -e origin_tech -e req_tech "' . $rg_path . '"')));
+if (!$files) { print "ERROR: rg matched no files in $rg_path\n"; }
 sort($files);
 	foreach ($files as $line) {
 		$line = str_replace('\\', '/', chop($line)); // normalize so the blacklist matches on Windows too
@@ -160,6 +175,9 @@ sort($files);
 			print "ERROR OPENING: ./$line \n";
 		}
 	}
+
+// deleting the repo so we don't have it sitting on the disk
+rmtree($paradise_dir);
 
 if ($debug) { print_r($item_marray); }
 //print "ASDASDASD\n";
@@ -316,6 +334,24 @@ function convert_to_techstring($tstr, $islist) {
 	}
 	$techstring .= '}';
 	return $techstring;
+}
+
+
+// used to delete the paradise repo
+function rmtree($dir) {
+	$it = new RecursiveDirectoryIterator($dir, RecursiveDirectoryIterator::SKIP_DOTS);
+	$files = new RecursiveIteratorIterator($it, RecursiveIteratorIterator::CHILD_FIRST);
+	foreach ($files as $file) {
+		$path = $file->getPathname();
+		@chmod($path, 0777);
+		if ($file->isDir()) {
+			@rmdir($path);
+		} else {
+			@unlink($path);
+		}
+	}
+	@chmod($dir, 0777);
+	@rmdir($dir);
 }
 
 ?>

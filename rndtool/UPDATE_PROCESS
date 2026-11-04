@@ -1,5 +1,5 @@
-php gen-itemdata.php > rndData.js
+rm rndtool/rndData.js                            
+php rndtool/gen-itemdata.php > rndtool/rndData.js
 update date in RDT.html
-download modified RDT.html and rndData.js to local github
-check in changes
-verify that they show up on: https://ss13.haydenredacted.com/rndtool/
+check in changes 
+verify at https://ss13.haydenredacted.com/rndtool/
