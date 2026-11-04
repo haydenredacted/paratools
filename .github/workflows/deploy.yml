@@ -26,11 +26,14 @@ jobs:
         with:
           php-version: '8.2'
 
+      - name: Install ripgrep
+        run: sudo apt-get update && sudo apt-get install -y ripgrep
+
       - name: Generate rndData.js
         if: github.event_name != 'push'
         run: |
           php rndtool/gen-itemdata.php > rndtool/rndData.js
-          sed -i -E "s/[0-9]{4}\/[A-Za-z]+[0-9]{1,2}(st|nd|rd|th)/$(date +%Y\/%B\/%-d)/" rndtool/RDT.html
+          sed -i -E "s|[0-9]{4}/[A-Za-z]+[0-9]{1,2}(st|nd|rd|th)|$(date +%Y/%B/%-d)|" rndtool/RDT.html
           git config user.name "GitHub Actions"
           git config user.email "github-actions@github.com"
           git add rndtool/rndData.js rndtool/RDT.html
